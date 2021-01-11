@@ -183,37 +183,37 @@ CREATE PROCEDURE PU_Categorie(IN idCategorie SMALLINT, IN typeCategorie VARCHAR(
 -- DELETE
 
 # Supprime la catégorie d'identifiant idCategorie
-CREATE PROCEDURE PD_Categorie(IN idCategorie SMALLINT)
+CREATE PROCEDURE PD_Categorie(IN categorieId SMALLINT)
 	# Si la catégorie existe
-	IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
+	IF EXISTS(SELECT * FROM categorie WHERE id = categorieId)
     THEN
 		# Si l'identifiant de la catégorie est référencé dans la table collecteur
         -- Test à supprimer si DELETE SET NULL
         -- idCategorie (colonne dans collecteur) = idCategorie (entrée de la procédure)
-		IF EXISTS(SELECT * FROM collecteur WHERE idCategorie = idCategorie)
+		IF EXISTS(SELECT * FROM collecteur WHERE idCategorie = categorieId)
         THEN
 			SIGNAL SQLSTATE '45000'
 				SET MESSAGE_TEXT = "La catégorie a son identifiant référencé dans la table collecteur; toutes ces entrées sont à rectifier au préalable";
 		ELSE
-			DELETE FROM categorie WHERE id = idCategorie;
+			DELETE FROM categorie WHERE id = categorieId;
 		END IF;
 	ELSE
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = "La catégorie que vous essayez de supprimer n'existe pas";
 	END IF$$
-    
+
 # Supprime la catégorie d'identifiant idCategorie et réinitialise toutes ses références (dans collecteur) à NULL
 -- A utiliser avec précaution
-CREATE PROCEDURE PD_CategorieCascade(IN idCategorie SMALLINT)
+CREATE PROCEDURE PD_CategorieCascade(IN categorieId SMALLINT)
 	# Si la catégorie existe
-	IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
+	IF EXISTS(SELECT * FROM categorie WHERE id = categorieId)
     THEN
 		# Réinitialisation à NULL des références à cette catégorie dans collecteur
 		UPDATE collecteur 
 			SET idCategorie = NULL
-        WHERE idCategorie = idCategorie;
+        WHERE idCategorie = categorieId;
         # Suppresion de la catégorie
-		DELETE FROM categorie WHERE id = idCategorie;
+		DELETE FROM categorie WHERE id = categorieId;
 	ELSE
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = "La catégorie que vous essayez de supprimer n'existe pas";
@@ -232,7 +232,11 @@ CREATE PROCEDURE PD_CategorieByType(IN typeCategorie VARCHAR(30))
 			SIGNAL SQLSTATE '45000'
 				SET MESSAGE_TEXT = "La catégorie a son identifiant référencé dans la table collecteur; toutes ces entrées sont à rectifier au préalable";
 		ELSE
+			# On saute la protection empêchant de supprimer potentiellement plusieurs lignes d'un coup
+			SET SQL_SAFE_UPDATES = 0;
 			DELETE FROM categorie WHERE type = typeCategorie;
+            # Restauration de la protection
+            SET SQL_SAFE_UPDATES = 1;
 		END IF;
 	ELSE
 		SIGNAL SQLSTATE '45000'
@@ -249,8 +253,12 @@ CREATE PROCEDURE PD_CategorieByTypeCascade(IN typeCategorie VARCHAR(30))
 		UPDATE collecteur 
 			SET idCategorie = NULL
 		WHERE idCategorie = (SELECT id FROM categorie WHERE type = typeCategorie);
+        # On saute la protection empêchant de supprimer potentiellement plusieurs lignes d'un coup
+		SET SQL_SAFE_UPDATES = 0;
         # Suppresion de la catégorie
         DELETE FROM categorie WHERE type = typeCategorie;
+        # Restauration de la protection
+		SET SQL_SAFE_UPDATES = 1;
 	ELSE
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = "La catégorie que vous essayez de supprimer n'existe pas";
@@ -311,14 +319,14 @@ CREATE PROCEDURE PI_Collecteur(IN objectidCollecteur SMALLINT, IN idCollecteur V
 				SIGNAL SQLSTATE '45000'
 				SET MESSAGE_TEXT = "Un collecteur existe déjà à cette adresse ou pour ces coordonnées";
             ELSE
-				# On vérifie que l'identifiant de catégorie existe bien
-				IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
+				# On vérifie que l'identifiant de catégorie existe bien s'il est spécifié
+				IF idCategorie IS NULL OR EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
 				THEN
 					# On vérifie que l'identifiant de tri existe bien
 					IF EXISTS(SELECT * FROM tri WHERE id = idTri)
 					THEN
-						# On vérifie que l'identifiant de marque existe bien
-						IF EXISTS(SELECT * FROM marque WHERE id = idMarque)
+						# On vérifie que l'identifiant de marque existe bien s'il est spécifié
+						IF idMarque IS NULL OR EXISTS(SELECT * FROM marque WHERE id = idMarque)
                         THEN
 							INSERT INTO collecteur
 							VALUES(objectidCollecteur, idCollecteur, volumeCollecteur, quantiteCollecteur, dateInstallationCollecteur, adresseCollecteur, adresseComplementCollecteur, codeInseeCollecteur, observationsCollecteur, 
@@ -359,17 +367,17 @@ CREATE PROCEDURE PI_CollecteurSimple(IN idCollecteur VARCHAR(30), IN volumeColle
 			SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = "Un collecteur existe déjà à cette adresse ou pour ces coordonnées";
 		ELSE
-			# On vérifie que l'identifiant de catégorie existe bien
-			IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
+			# On vérifie que l'identifiant de catégorie existe bien s'il est spécifié
+			IF idCategorie IS NULL OR EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
 			THEN
 				# On vérifie que l'identifiant de tri existe bien
 				IF EXISTS(SELECT * FROM tri WHERE id = idTri)
 				THEN
-					# On vérifie que l'identifiant de marque existe bien
-					IF EXISTS(SELECT * FROM marque WHERE id = idMarque)
+					# On vérifie que l'identifiant de marque existe bien s'il est spécifié
+					IF idMarque IS NULL OR EXISTS(SELECT * FROM marque WHERE id = idMarque)
 					THEN
 						INSERT INTO collecteur(id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, 
-												createur, dateCreation, modificateur, dateModificiation, globalId, _x, _y, idCategorie, idTri, idMarque)
+												createur, dateCreation, modificateur, dateModification, globalId, _x, _y, idCategorie, idTri, idMarque)
 						VALUES(idCollecteur, volumeCollecteur, quantiteCollecteur, dateInstallationCollecteur, adresseCollecteur, adresseComplementCollecteur, codeInseeCollecteur, observationsCollecteur, 
 													createurCollecteur, NOW(), createurCollecteur, NOW(), globalIdCollecteur, _xCollecteur, _yCollecteur, idCategorie, idTri, idMarque);
 					ELSE
@@ -608,14 +616,14 @@ CREATE PROCEDURE PIU_Collecteur(IN objectidCollecteur SMALLINT, IN idCollecteur 
 			SIGNAL SQLSTATE '45000'
 				SET MESSAGE_TEXT = "Un collecteur existe déjà à cette adresse ou pour ces coordonnées";
 		ELSE
-			# On vérifie que l'identifiant de catégorie existe bien
-			IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
+			# On vérifie que l'identifiant de catégorie existe bien s'il est spécifié
+			IF idCategorie IS NULL OR EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
 			THEN
 				# On vérifie que l'identifiant de tri existe bien
 				IF EXISTS(SELECT * FROM tri WHERE id = idTri)
 				THEN
-					# On vérifie que l'identifiant de marque existe bien
-					IF EXISTS(SELECT * FROM marque WHERE id = idMarque)
+					# On vérifie que l'identifiant de marque existe bien s'il est spécifié
+					IF idMarque IS NULL OR EXISTS(SELECT * FROM marque WHERE id = idMarque)
 					THEN
 						# Si l'identifiant est déjà attribué
 						IF EXISTS(SELECT * FROM decheterie WHERE objectid = objectidDecheterie)
