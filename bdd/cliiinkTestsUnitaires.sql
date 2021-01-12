@@ -1,483 +1,685 @@
 /*
- * Procédures stockées suivant le principe CRUD
- * pour la persistance des objets
+ * Tests unitaires pour le CRUD
  */
 USE cliiink;
 
-# Suppression des éventuelles procédures exitantes
-DROP PROCEDURE IF EXISTS PI_Categorie; 
-DROP PROCEDURE IF EXISTS PI_CategorieSimple; 
-DROP PROCEDURE IF EXISTS PSGetCategorie; 
-DROP PROCEDURE IF EXISTS PL_Categorie;
-DROP PROCEDURE IF EXISTS PU_Categorie; 
-DROP PROCEDURE IF EXISTS PD_Categorie; 
-DROP PROCEDURE IF EXISTS PD_CategorieCascade; 
-DROP PROCEDURE IF EXISTS PD_CategorieByType; 
-DROP PROCEDURE IF EXISTS PD_CategorieByTypeCascade; 
-DROP PROCEDURE IF EXISTS PIU_Categorie; 
-DROP PROCEDURE IF EXISTS PI_Collecteur;
-DROP PROCEDURE IF EXISTS PI_CollecteurSimple;
-DROP PROCEDURE IF EXISTS PI_CollecteurMin;
-DROP PROCEDURE IF EXISTS PSGetCollecteur;
-DROP PROCEDURE IF EXISTS PL_Collecteur;
-DROP PROCEDURE IF EXISTS PL_CollecteurByVolume;
-DROP PROCEDURE IF EXISTS PL_CollecteurByQuantite;
-DROP PROCEDURE IF EXISTS PL_CollecteurByDateInstallation;
-DROP PROCEDURE IF EXISTS PL_CollecteurByDateInstallationInterval;
-DROP PROCEDURE IF EXISTS PL_CollecteurByAdresse;
-DROP PROCEDURE IF EXISTS PL_CollecteurByCodeInsee;
-DROP PROCEDURE IF EXISTS PL_CollecteurByCreateur;
-DROP PROCEDURE IF EXISTS PL_CollecteurByDateCreation;
-DROP PROCEDURE IF EXISTS PL_CollecteurByDateCreationInterval;
-DROP PROCEDURE IF EXISTS PL_CollecteurByModificateur;
-DROP PROCEDURE IF EXISTS PL_CollecteurByDateModification;
-DROP PROCEDURE IF EXISTS PL_CollecteurByDateModificationInterval;
-DROP PROCEDURE IF EXISTS PL_CollecteurByGlobalid;
-DROP PROCEDURE IF EXISTS PL_CollecteurByCoordonnees;
-DROP PROCEDURE IF EXISTS PL_CollecteurByCoordonneesMarge;
-DROP PROCEDURE IF EXISTS PL_CollecteurByIdCategorie;
-DROP PROCEDURE IF EXISTS PL_CollecteurByIdTri;
-DROP PROCEDURE IF EXISTS PL_CollecteurByIdMarque;
-DROP PROCEDURE IF EXISTS PU_Collecteur;
-DROP PROCEDURE IF EXISTS PD_Collecteur;
-DROP PROCEDURE IF EXISTS PIU_Collecteur;
-DROP PROCEDURE IF EXISTS PI_Dechet; 
-DROP PROCEDURE IF EXISTS PI_DechetSimple; 
-DROP PROCEDURE IF EXISTS PSGetDechet; 
-DROP PROCEDURE IF EXISTS PL_Dechet;
-DROP PROCEDURE IF EXISTS PU_Dechet; 
-DROP PROCEDURE IF EXISTS PD_Dechet; 
-DROP PROCEDURE IF EXISTS PD_DechetCascade; 
-DROP PROCEDURE IF EXISTS PD_DechetByType; 
-DROP PROCEDURE IF EXISTS PD_DechetByTypeCascade; 
-DROP PROCEDURE IF EXISTS PIU_Dechet; 
-DROP PROCEDURE IF EXISTS PI_Decheterie;
-DROP PROCEDURE IF EXISTS PI_DecheterieSimple;
-DROP PROCEDURE IF EXISTS PI_DecheterieMin;
-DROP PROCEDURE IF EXISTS PSGetDecheterie;
-DROP PROCEDURE IF EXISTS PL_Decheterie;
-DROP PROCEDURE IF EXISTS PL_DecheterieByDateInstallation;
-DROP PROCEDURE IF EXISTS PL_DecheterieByDateInstallationInterval;
-DROP PROCEDURE IF EXISTS PL_DecheterieByAdresse;
-DROP PROCEDURE IF EXISTS PL_DecheterieByCodeInsee;
-DROP PROCEDURE IF EXISTS PL_DecheterieByCreateur;
-DROP PROCEDURE IF EXISTS PL_DecheterieByDateCreation;
-DROP PROCEDURE IF EXISTS PL_DecheterieByDateCreationInterval;
-DROP PROCEDURE IF EXISTS PL_DecheterieByModificateur;
-DROP PROCEDURE IF EXISTS PL_DecheterieByDateModification;
-DROP PROCEDURE IF EXISTS PL_DecheterieByDateModificationInterval;
-DROP PROCEDURE IF EXISTS PL_DecheterieByGlobalid;
-DROP PROCEDURE IF EXISTS PL_DecheterieByCoordonnees;
-DROP PROCEDURE IF EXISTS PL_DecheterieByCoordonneesMarge;
-DROP PROCEDURE IF EXISTS PU_Decheterie;
-DROP PROCEDURE IF EXISTS PD_Decheterie;
-DROP PROCEDURE IF EXISTS PD_DecheterieCascade;
-DROP PROCEDURE IF EXISTS PIU_Decheterie;
-DROP PROCEDURE IF EXISTS PI_Marque; 
-DROP PROCEDURE IF EXISTS PI_MarqueSimple; 
-DROP PROCEDURE IF EXISTS PSGetMarque; 
-DROP PROCEDURE IF EXISTS PL_Marque;
-DROP PROCEDURE IF EXISTS PU_Marque; 
-DROP PROCEDURE IF EXISTS PD_Marque; 
-DROP PROCEDURE IF EXISTS PD_MarqueCascade; 
-DROP PROCEDURE IF EXISTS PD_MarqueByNom; 
-DROP PROCEDURE IF EXISTS PD_MarqueByNomCascade; 
-DROP PROCEDURE IF EXISTS PIU_Marque; 
-DROP PROCEDURE IF EXISTS PI_Traitement;
-DROP PROCEDURE IF EXISTS PL_Traitement;
-DROP PROCEDURE IF EXISTS PL_TraitementByObjectidDecheterie;
-DROP PROCEDURE IF EXISTS PL_TraitementByIdDecheterie;
-DROP PROCEDURE IF EXISTS PD_Traitement;
-DROP PROCEDURE IF EXISTS PI_Tri; 
-DROP PROCEDURE IF EXISTS PI_TriSimple; 
-DROP PROCEDURE IF EXISTS PSGetTri; 
-DROP PROCEDURE IF EXISTS PL_Tri;
-DROP PROCEDURE IF EXISTS PU_Tri; 
-DROP PROCEDURE IF EXISTS PD_Tri; 
-DROP PROCEDURE IF EXISTS PD_TriCascade; 
-DROP PROCEDURE IF EXISTS PD_TriByType; 
-DROP PROCEDURE IF EXISTS PD_TriByTypeCascade; 
-DROP PROCEDURE IF EXISTS PIU_Tri; 
+/*
+ * Test unitaires TABLE categorie
+ */
+ 
+-- Test unitaire PI_Categorie
 
-# On change le délimiteur de la fin d'une instruction (; remplacé par $$)
-# pour que MySQL lise chaque procédure d'un bloc
-DELIMITER $$
+# Test insertion classique
+# Une nouvelle ligne doit apparaître
+START TRANSACTION;
+	# Détermination des variables
+	SET @nouvelleCategorieId = (SELECT max(id) + 1 from categorie);
+	SET @nouvelleCategorieType = "Nouveau Type";
+    # Vérification que le type n'existe pas
+    SELECT * FROM categorie WHERE type = @nouvelleCategorieType;
+    # Vérification que l'id n'est pas déjà attribué
+	SELECT * FROM categorie WHERE id = @nouvelleCategorieId;
+    # Insertion de la ligne témoin via la procédure
+	CALL PI_Categorie(@nouvelleCategorieId, @nouvelleCategorieType);
+    # Vérification de l'insertion de la ligne
+	SELECT * FROM categorie WHERE id = @nouvelleCategorieId;
+ROLLBACK;
+# Réinitialisation de l'auto-incrémentation au plus haut ID + 1
+ALTER TABLE categorie AUTO_INCREMENT = 1;
 
-/* 
-CRUD TABLE categorie
-*/
+-- Test unitaire PI_CategorieSimple
 
--- CREATE 
+# Test insertion classique
+# Une nouvelle ligne doit apparaître
+START TRANSACTION;
+	# Détermination de la variable
+	SET @nouvelleCategorieType = "Nouveau Type";
+    # Vérification que le type n'existe pas
+    SELECT * FROM categorie WHERE type = @nouvelleCategorieType;
+    # Insertion de la ligne témoin via la procédure
+	CALL PI_CategorieSimple("Nouveau Type");
+    # Vérification de l'insertion de la ligne
+	SELECT * FROM categorie WHERE type = @nouvelleCategorieType;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
 
-# Ajoute une catégorie avec un identifiant et un type 
-CREATE PROCEDURE PI_Categorie(IN idCategorie SMALLINT, IN typeCategorie VARCHAR(30))
-	# Si l'identifiant est déjà attribué
-    IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
-    # Alors on renvoie un message d'erreur
-	THEN 
-		# un numéro d'erreur bidon
-		SIGNAL SQLSTATE '45000'
-			# avec son message perso
-			SET MESSAGE_TEXT = "L'identifiant existe déjà";
-	# Sinon
-	ELSE
-		# Si le type existe déjà
-		IF EXISTS(SELECT * FROM categorie WHERE type = typeCategorie)
-		THEN
-			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = "Ce type existe déjà";
-		ELSE
-			# On insère la nouvelle catégorie dans la table
-			INSERT INTO categorie VALUES(idCategorie, typeCategorie);
-		END IF;
-    # Fin du 1er IF    
-	END IF$$
+-- Test unitaire PSGetCategorie
 
-# Ajoute une catégorie avec juste son type (l'identifiant est autoincrémenté)
-CREATE PROCEDURE PI_CategorieSimple(IN typeCategorie VARCHAR(30))
-	# On vérifie que le type n'existe pas déjà
-    IF EXISTS(SELECT * FROM categorie WHERE type = typeCategorie)
-	THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "Le type existe déjà";
-	ELSE
-		INSERT INTO categorie(type) VALUES(typeCategorie);
-	END IF$$
+# Test lecture classique
+# La différence doit apparaître
+START TRANSACTION;
+	# Insertion d'une ligne au cas où la table serait vide
+	INSERT INTO categorie(type) VALUES ("Type d'essai");
+    # Récupération de l'identifiant de la dernière catégorie insérée
+	SET @derniereCategorieId = (SELECT max(id) from categorie);
+	# Appel de la procédure
+    CALL PSGetCategorie(@derniereCategorieId);
+    # Insertion de la ligne témoin
+	INSERT INTO categorie(type) VALUES ("Type d'essai 2");
+	# Récupération de l'identifiant de la dernière catégorie insérée
+	SET @derniereCategorieId = (SELECT max(id) from categorie);
+    # Appel de la procédure pour vérifier la différence
+	CALL PSGetCategorie(@derniereCategorieId);
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
 
--- RETRIEVE
+-- Test unitaire PL_Categorie
 
-# Affiche la catégorie d'identifiant idCategorie
-CREATE PROCEDURE PSGetCategorie(IN idCategorie SMALLINT)
-	SELECT id, type FROM categorie 
-    WHERE id = idCategorie$$
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	# Affiche la totalité des lignes
+	CALL PL_Categorie();
+    # Décompte du nombre de catégories
+    SELECT count(*) FROM film;
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO categorie(type) VALUES ("Type d'essai"), ("Type d'essai2");
+	# Affiche la totalité des lignes (dont les 2 nouvelles)
+    CALL PL_Categorie();
+	# Décompte du nouveau nombre de catégories
+    SELECT count(*) FROM film;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
 
-# Affiche toutes les catégories
-CREATE PROCEDURE PL_Categorie()
-	SELECT id, type FROM categorie$$
+-- Test unitaire PU_Categorie
 
--- UPDATE
+# Test modification classique
+# La ligne modifiée doit apparaître
+START TRANSACTION;
+	# Insertion de la ligne témoin
+    INSERT INTO categorie(type) VALUES ("Type d'essai");
+    # Récupération de l'identifiant de la dernière catégorie insérée	
+    SET @derniereCategorieId = (SELECT max(id) from categorie);
+	# Affichage de la ligne témoin avant modification
+    SELECT * FROM categorie where id = @derniereCategorieId;
+    # Modification de la ligne témoin par la procédure
+    CALL PU_Categorie(@derniereCategorieId, "Type d'essai modifié");
+    # Affichage de la ligne témoin après modification
+    SELECT * FROM categorie where id = @derniereCategorieId;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
 
-# Change le type de la catégorie d'identifiant idCategorie
-CREATE PROCEDURE PU_Categorie(IN idCategorie SMALLINT, IN typeCategorie VARCHAR(30))
-	# Si la catégorie existe
-	IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
-    # Alors
-	THEN 
-		# On vérifie que le type n'existe pas déjà
-		IF EXISTS(SELECT * FROM categorie WHERE type = typeCategorie)
-		THEN
-			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = "Le type existe déjà";
-		ELSE
-		# On met à jour le type
-			UPDATE categorie
-				SET type = typeCategorie
-			# de la catégorie d'identifiant idCategorie         
-			WHERE id = idCategorie;
-		END IF;
-	ELSE 
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "La catégorie que vous essayez de modifier n'existe pas";
-	END IF$$
+-- Test unitaire PD_Categorie
 
--- DELETE
+# Test suppression classique
+# La ligne ne doit plus apparaître
+START TRANSACTION;
+	# Insertion de la ligne témoin
+    INSERT INTO categorie(type) VALUES ("Type d'essai");
+    # Récupération de l'identifiant de la dernière catégorie insérée	
+    SET @derniereCategorieId = (SELECT max(id) from categorie);
+	# Affichage de la ligne insérée
+    SELECT * FROM categorie where id = @derniereCategorieId;
+    # Suppression de la ligne via la procédure
+    CALL PD_Categorie(@derniereCategorieId);
+    # Tentative d'affichage de la ligne témoin supprimée
+    SELECT * FROM categorie where id = @derniereCategorieId;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
 
-# Supprime la catégorie d'identifiant idCategorie
-CREATE PROCEDURE PD_Categorie(IN categorieId SMALLINT)
-	# Si la catégorie existe
-	IF EXISTS(SELECT * FROM categorie WHERE id = categorieId)
-    THEN
-		# Si l'identifiant de la catégorie est référencé dans la table collecteur
-        -- Test à supprimer si DELETE SET NULL
-        -- idCategorie (colonne dans collecteur) = idCategorie (entrée de la procédure)
-		IF EXISTS(SELECT * FROM collecteur WHERE idCategorie = categorieId)
-        THEN
-			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = "La catégorie a son identifiant référencé dans la table collecteur; toutes ces entrées sont à rectifier au préalable";
-		ELSE
-			DELETE FROM categorie WHERE id = categorieId;
-		END IF;
-	ELSE
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "La catégorie que vous essayez de supprimer n'existe pas";
-	END IF$$
+-- Test unitaire PD_CategorieCascade
 
-# Supprime la catégorie d'identifiant idCategorie et réinitialise toutes ses références (dans collecteur) à NULL
--- A utiliser avec précaution
-CREATE PROCEDURE PD_CategorieCascade(IN categorieId SMALLINT)
-	# Si la catégorie existe
-	IF EXISTS(SELECT * FROM categorie WHERE id = categorieId)
-    THEN
-		# Réinitialisation à NULL des références à cette catégorie dans collecteur
-		UPDATE collecteur 
-			SET idCategorie = NULL
-        WHERE idCategorie = categorieId;
-        # Suppresion de la catégorie
-		DELETE FROM categorie WHERE id = categorieId;
-	ELSE
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "La catégorie que vous essayez de supprimer n'existe pas";
-	END IF$$
+# Test suppression classique avec cascade
+# La ligne ne doit plus apparaître
+START TRANSACTION;
+	# Insertion de la ligne témoin
+    INSERT INTO categorie(type) VALUES ("Type d'essai");
+    # Récupération de l'identifiant de la dernière catégorie insérée	
+    SET @derniereCategorieId = (SELECT max(id) from categorie);
+    # Insertion d'un nouveau tri
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiant du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion d'un nouveau collecteur témoin pour la clé étrangère
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idTri) 
+		VALUES (1, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @derniereCategorieId, @dernierTriId);
+	# Récupération de l'identifiant du dernier collecteur inséré
+	SET @dernierCollecteurId = (SELECT max(objectid) from collecteur);
+    # Affichage de la ligne insérée
+    SELECT * FROM categorie where id = @derniereCategorieId;
+    # Affichage du collecteur l'utilisant
+	SELECT * FROM collecteur where objectid = @dernierCollecteurId;
+    # Suppression de la ligne via la procédure
+    CALL PD_CategorieCascade(@derniereCategorieId);
+    # Tentative d'affichage de la ligne témoin supprimée
+    SELECT * FROM categorie where id = @derniereCategorieId;
+    # Affichage du collecteur ne référençant plus la catégorie
+	SELECT * FROM collecteur where objectid = @dernierCollecteurId;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;
+ALTER TABLE tri AUTO_INCREMENT = 1;
+
+-- Test unitaire PD_CategorieByType
+
+# Test suppression classique
+# La ligne ne doit plus apparaître
+START TRANSACTION;
+	SET @nouvelleCategorieType = "Type d'essai";
+	# Insertion de la ligne témoin
+    INSERT INTO categorie(type) VALUES (@nouvelleCategorieType);
+    # Récupération de l'identifiant de la dernière catégorie insérée	
+    SET @nouvelleCategorieId = (SELECT max(id) from categorie);
+    # Affichage de la ligne insérée
+    SELECT * FROM categorie where id = @nouvelleCategorieId;
+    # Suppression de la ligne via la procédure
+    CALL PD_CategorieByType(@nouvelleCategorieType);
+    # Tentative d'affichage de la ligne témoin supprimée
+    SELECT * FROM categorie where id = @nouvelleCategorieId;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
     
-# Supprime la catégorie selon le type
-CREATE PROCEDURE PD_CategorieByType(IN typeCategorie VARCHAR(30))
-	# Si la catégorie existe
-	IF EXISTS(SELECT * FROM categorie WHERE type = typeCategorie)
-    THEN
-		# Si l'identifiant associé au type de la catégorie est référencé dans la table collecteur
-        -- Test à supprimer si DELETE SET NULL
-        -- idCategorie (colonne dans collecteur) = id associé au type de la catégorie
-		IF EXISTS(SELECT * FROM collecteur WHERE idCategorie = (SELECT id FROM categorie WHERE type = typeCategorie))
-        THEN
-			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = "La catégorie a son identifiant référencé dans la table collecteur; toutes ces entrées sont à rectifier au préalable";
-		ELSE
-			# On saute la protection empêchant de supprimer potentiellement plusieurs lignes d'un coup
-			SET SQL_SAFE_UPDATES = 0;
-			DELETE FROM categorie WHERE type = typeCategorie;
-            # Restauration de la protection
-            SET SQL_SAFE_UPDATES = 1;
-		END IF;
-	ELSE
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "La catégorie que vous essayez de supprimer n'existe pas";
-	END IF$$
-    
-# Supprime la catégorie selon le type et réinitialise toutes ses références (dans collecteur) à NULL
--- A utiliser avec précaution
-CREATE PROCEDURE PD_CategorieByTypeCascade(IN typeCategorie VARCHAR(30))
-	# Si la catégorie existe
-	IF EXISTS(SELECT * FROM categorie WHERE type = typeCategorie)
-    THEN
-		# Réinitialisation à NULL des références à cette catégorie dans collecteur
-		UPDATE collecteur 
-			SET idCategorie = NULL
-		WHERE idCategorie = (SELECT id FROM categorie WHERE type = typeCategorie);
-        # On saute la protection empêchant de supprimer potentiellement plusieurs lignes d'un coup
-		SET SQL_SAFE_UPDATES = 0;
-        # Suppresion de la catégorie
-        DELETE FROM categorie WHERE type = typeCategorie;
-        # Restauration de la protection
-		SET SQL_SAFE_UPDATES = 1;
-	ELSE
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "La catégorie que vous essayez de supprimer n'existe pas";
-	END IF$$
-	
--- BONUS
+-- Test unitaire PD_CategorieByTypeCascade
 
-# Ajoute une catégorie si elle n'existe pas, la met à jour sinon
-CREATE PROCEDURE PIU_Categorie(IN idCategorie SMALLINT, IN typeCategorie VARCHAR(30))
-	# Si le type existe déjà
-	IF EXISTS(SELECT * FROM categorie WHERE type = typeCategorie)
-	THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "Ce type existe déjà";
-	ELSE
-		# Si la catégorie existe déjà
-		IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
-		THEN 	
-			# On la met à jour
-			UPDATE categorie
-				SET type = typeCategorie WHERE id = idCategorie;
-		ELSE
-			# On insère la nouvelle catégorie dans la table
-			INSERT INTO categorie VALUES(idCategorie, typeCategorie);
-		END IF;
-	END IF$$
+# Test suppression classique avec cascade
+# La ligne ne doit plus apparaître    
+START TRANSACTION;
+	SET @nouvelleCategorieType = "Type d'essai";
+	# Insertion de la ligne témoin
+    INSERT INTO categorie(type) VALUES (@nouvelleCategorieType);
+    # Récupération de l'identifiant de la dernière catégorie insérée	
+    SET @nouvelleCategorieId = (SELECT max(id) from categorie);
+    # Insertion d'un nouveau tri
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiant du dernier tri inséré	
+	SET @nouveauTriId = (SELECT max(id) from tri);    
+    # Insertion d'un nouveau collecteur témoin pour la clé étrangère
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idTri) 
+		VALUES (1, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @nouvelleCategorieId, @nouveauTriId);
+	# Récupération de l'identifiant du dernier collecteur inséré
+	SET @nouveauCollecteurId = (SELECT max(objectid) from collecteur);
+    # Affichage de la ligne insérée
+    SELECT * FROM categorie where id = @nouvelleCategorieId;
+    # Affichage du collecteur l'utilisant
+	SELECT * FROM collecteur where objectid = @nouveauCollecteurId;
+    # Suppression de la ligne via la procédure
+    CALL PD_CategorieByTypeCascade(@nouvelleCategorieType);
+    # Tentative d'affichage de la ligne témoin supprimée
+    SELECT * FROM categorie where id = @nouvelleCategorieId;
+    # Affichage du collecteur ne référençant plus la catégorie
+	SELECT * FROM collecteur where objectid = @nouveauCollecteurId;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;
+ALTER TABLE tri AUTO_INCREMENT = 1;
+    	
+-- Test unitaire PIU_Categorie
 
-/* 
-CRUD TABLE collecteur
-*/
+# Test insertion puis modification classique avec cascade
+# Une nouvelle ligne doit apparaître puis la modification
+# Insertion de la ligne témoin
+START TRANSACTION;
+    # Détermination des variables
+    SET @nouvelleCategorieId = (SELECT max(id) + 1 from categorie);
+	SET @nouvelleCategorieType = "Nouveau Type";
+    # Vérification que le type n'existe pas
+    SELECT * FROM categorie WHERE type = @nouvelleCategorieType;
+    # Vérification que l'id n'est pas déjà attribué
+	SELECT * FROM categorie WHERE id = @nouvelleCategorieId;
+    # Insertion de la ligne témoin via la procédure
+	CALL PIU_Categorie(@nouvelleCategorieId, @nouvelleCategorieType);
+    # Vérification de l'insertion de la ligne
+	SELECT * FROM categorie WHERE id = @nouvelleCategorieId;
+    # Modification de la ligne témoin via la même procédure
+	CALL PIU_Categorie(@nouvelleCategorieId, CONCAT(@nouvelleCategorieType, " modifié"));
+	# Vérification de la modification de la ligne
+	SELECT * FROM categorie WHERE id = @nouvelleCategorieId;
+ROLLBACK;
+ALTER TABLE categorie AUTO_INCREMENT = 1;
 
-# Ajoute un collecteur avec toutes les informations
--- A la création du collecteur, le créateur est aussi le modificateur initial
--- Les dates de création et de modification correpondent à l'instant présent
--- Pour des raisons de sécurité, les points ci-dessus ne doivent pas être éditables
-CREATE PROCEDURE PI_Collecteur(IN objectidCollecteur SMALLINT, IN idCollecteur VARCHAR(30), IN volumeCollecteur SMALLINT, IN quantiteCollecteur SMALLINT, IN dateInstallationCollecteur DATE, 
-								IN adresseCollecteur VARCHAR(50), IN adresseComplementCollecteur VARCHAR(40), IN codeInseeCollecteur CHAR(5), IN observationsCollecteur VARCHAR(70), IN createurCollecteur VARCHAR(20),
-                                IN globalIdCollecteur VARCHAR(38), IN _xCollecteur FLOAT, IN _yCollecteur FLOAT, IN idCategorie SMALLINT, IN idTri SMALLINT, IN idMarque SMALLINT)
-	# Si l'identifiant est déjà attribué
-    IF EXISTS(SELECT * FROM collecteur WHERE objectid = objectidCollecteur)
-    # Alors on renvoie un message d'erreur
-	THEN 
-		# un numéro d'erreur bidon
-		SIGNAL SQLSTATE '45000'
-			# avec son message perso
-			SET MESSAGE_TEXT = "L'identifiant existe déjà";
-	# Sinon
-	ELSE
-		# Si le globalid existe déjà
-		IF EXISTS(SELECT * FROM collecteur WHERE globalid = globalIdCollecteur)
-		THEN
-			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = "Ce globalid est déjà attribué";
-		ELSE
-			# Si un collecteur existe à cette adresse ou pour ces coordonnées
-			IF EXISTS(SELECT * FROM collecteur WHERE adresse = adresseCollecteur) OR EXISTS(SELECT * FROM collecteur WHERE _x = _xCollecteur AND _y = _yCollecteur)
-            THEN
-				SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = "Un collecteur existe déjà à cette adresse ou pour ces coordonnées";
-            ELSE
-				# On vérifie que l'identifiant de catégorie existe bien s'il est spécifié
-				IF idCategorie IS NULL OR EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
-				THEN
-					# On vérifie que l'identifiant de tri existe bien
-					IF EXISTS(SELECT * FROM tri WHERE id = idTri)
-					THEN
-						# On vérifie que l'identifiant de marque existe bien s'il est spécifié
-						IF idMarque IS NULL OR EXISTS(SELECT * FROM marque WHERE id = idMarque)
-                        THEN
-							INSERT INTO collecteur
-							VALUES(objectidCollecteur, idCollecteur, volumeCollecteur, quantiteCollecteur, dateInstallationCollecteur, adresseCollecteur, adresseComplementCollecteur, codeInseeCollecteur, observationsCollecteur, 
-													createurCollecteur, NOW(), createurCollecteur, NOW(), globalIdCollecteur, _xCollecteur, _yCollecteur, idCategorie, idTri, idMarque);
-						ELSE
-							SIGNAL SQLSTATE '45000'
-								SET MESSAGE_TEXT = "L'identifiant de marque n'existe pas dans la table marque";
-						END IF;
-					ELSE
-						SIGNAL SQLSTATE '45000'
-							SET MESSAGE_TEXT = "L'identifiant de tri n'existe pas dans la table tri";
-					END IF;
-				ELSE
-					SIGNAL SQLSTATE '45000'
-						SET MESSAGE_TEXT = "L'identifiant de catégorie n'existe pas dans la table catégorie";
-				END IF;
-			END IF;
-		END IF;
-	END IF$$
+/*
+ * Test unitaires TABLE collecteur
+ */
 
-# Ajoute un collecteur avec les informations suffisantes
--- objectid est autoincrémenté
--- A la création de la déchèterie, le créateur est aussi le modificateur initial
--- Les dates de création et de modification correpondent à l'instant présent
--- Pour des raisons de sécurité, les points ci-dessus ne doivent pas être éditables
-CREATE PROCEDURE PI_CollecteurSimple(IN idCollecteur VARCHAR(30), IN volumeCollecteur SMALLINT, IN quantiteCollecteur SMALLINT, IN dateInstallationCollecteur DATE, 
-								IN adresseCollecteur VARCHAR(50), IN adresseComplementCollecteur VARCHAR(40), IN codeInseeCollecteur CHAR(5), IN observationsCollecteur VARCHAR(70), IN createurCollecteur VARCHAR(20),
-                                IN globalIdCollecteur VARCHAR(38), IN _xCollecteur FLOAT, IN _yCollecteur FLOAT, IN idCategorie SMALLINT, IN idTri SMALLINT, IN idMarque SMALLINT)
-	# Si le globalid existe déjà
-	IF EXISTS(SELECT * FROM collecteur WHERE globalid = globalIdCollecteur)
-	THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "Ce globalid est déjà attribué";
-	ELSE
-		# Si un collecteur existe à cette adresse ou pour ces coordonnées
-		IF EXISTS(SELECT * FROM collecteur WHERE adresse = adresseCollecteur) OR EXISTS(SELECT * FROM collecteur WHERE _x = _xCollecteur AND _y = _yCollecteur)
-		THEN
-			SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = "Un collecteur existe déjà à cette adresse ou pour ces coordonnées";
-		ELSE
-			# On vérifie que l'identifiant de catégorie existe bien s'il est spécifié
-			IF idCategorie IS NULL OR EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
-			THEN
-				# On vérifie que l'identifiant de tri existe bien
-				IF EXISTS(SELECT * FROM tri WHERE id = idTri)
-				THEN
-					# On vérifie que l'identifiant de marque existe bien s'il est spécifié
-					IF idMarque IS NULL OR EXISTS(SELECT * FROM marque WHERE id = idMarque)
-					THEN
-						INSERT INTO collecteur(id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, 
-												createur, dateCreation, modificateur, dateModification, globalId, _x, _y, idCategorie, idTri, idMarque)
-						VALUES(idCollecteur, volumeCollecteur, quantiteCollecteur, dateInstallationCollecteur, adresseCollecteur, adresseComplementCollecteur, codeInseeCollecteur, observationsCollecteur, 
-													createurCollecteur, NOW(), createurCollecteur, NOW(), globalIdCollecteur, _xCollecteur, _yCollecteur, idCategorie, idTri, idMarque);
-					ELSE
-						SIGNAL SQLSTATE '45000'
-							SET MESSAGE_TEXT = "L'identifiant de marque n'existe pas dans la table marque";
-					END IF;
-				ELSE
-					SIGNAL SQLSTATE '45000'
-						SET MESSAGE_TEXT = "L'identifiant de tri n'existe pas dans la table tri";
-				END IF;
-			ELSE
-				SIGNAL SQLSTATE '45000'
-					SET MESSAGE_TEXT = "L'identifiant de catégorie n'existe pas dans la table catégorie";
-			END IF;
-		END IF;
-	END IF;
-                        
-# Ajoute un collecteur avec les informations nécessaires au minimum
-CREATE PROCEDURE PI_CollecteurMin(IN quantiteCollecteur SMALLINT, IN codeInseeCollecteur CHAR(5), IN createurCollecteur VARCHAR(20), IN globalIdCollecteur VARCHAR(38),
-									IN _xCollecteur FLOAT, IN _yCollecteur FLOAT, IN idTri SMALLINT)
-	CALL PI_CollecteurSimple(NULL, NULL, quantiteCollecteur, NULL, NULL, NULL, codeInseeCollecteur, NULL, createurCollecteur, globalIdCollecteur, _xCollecteur, _yCollecteur, NULL, idTri, NULL);
+-- Test unitaire PI_Collecteur
 
--- RETRIEVE
+# Test insertion classique
+# Une nouvelle ligne doit apparaître
+START TRANSACTION;
+	# Détermination des variables
+	SET @nouveauCollecteurId = (SELECT max(objectid) + 1 from collecteur);
+    # Vérification que l'id n'est pas déjà attribué
+	SELECT * FROM collecteur WHERE objectid = @nouveauCollecteurId;
+	# Insertion d'un nouveau tri
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiant du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de la ligne témoin via la procédure
+	CALL PI_Collecteur(@nouveauCollecteurId, NULL, 660, 1, NOW(), "Quelque part", NULL, "06138", NULL, "ajacquemin", "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, NULL, @dernierTriId, NULL);
+    # Vérification de l'insertion de la ligne
+	SELECT * FROM collecteur WHERE objectid = @nouveauCollecteurId;
+ROLLBACK;
+# Réinitialisation de l'auto-incrémentation au plus haut ID + 1
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche le collecteur d'identifiant idCollecteur
-CREATE PROCEDURE PSGetCollecteur(IN objectidCollecteur SMALLINT)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE objectid = objectidCollecteur$$
+-- Test unitaire PI_CollecteurSimple
 
-# Affiche tous les collecteurs
-CREATE PROCEDURE PL_Collecteur()
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur$$
+# Test insertion classique
+# Une nouvelle ligne doit apparaître
+START TRANSACTION;
+	# Détermination des variables
+	SET @nouveauCollecteurId = (SELECT max(objectid) + 1 from collecteur);
+    # Vérification que l'id n'est pas déjà attribué
+	SELECT * FROM collecteur WHERE objectid = @nouveauCollecteurId;
+	# Insertion d'un nouveau tri
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiant du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de la ligne témoin via la procédure
+	CALL PI_CollecteurSimple(NULL, 660, 1, NOW(), "Quelque part", NULL, "06138", NULL, "ajacquemin", "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, NULL, @dernierTriId, NULL);
+    # Vérification de l'insertion de la ligne
+	SELECT * FROM collecteur WHERE objectid = @nouveauCollecteurId;
+ROLLBACK;
+# Réinitialisation de l'auto-incrémentation au plus haut ID + 1
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche les collecteurs selon le volume
-CREATE PROCEDURE PL_CollecteurByVolume(IN volumeCollecteur SMALLINT)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE volume = volumeCollecteur$$
+-- Test unitaire PI_CollecteurMin
 
-# Affiche les collecteurs selon la quantité
-CREATE PROCEDURE PL_CollecteurByQuantite(IN quantiteCollecteur SMALLINT)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE quantite = quantiteCollecteur$$
+# Test insertion classique
+# Une nouvelle ligne doit apparaître
+START TRANSACTION;
+	# Détermination des variables
+	SET @nouveauCollecteurId = (SELECT max(objectid) + 1 from collecteur);
+    # Vérification que l'id n'est pas déjà attribué
+	SELECT * FROM collecteur WHERE objectid = @nouveauCollecteurId;
+	# Insertion d'un nouveau tri
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiant du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de la ligne témoin via la procédure
+	CALL PI_CollecteurMin(1, "06138", "ajacquemin", "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId);
+    # Vérification de l'insertion de la ligne
+	SELECT * FROM collecteur WHERE objectid = @nouveauCollecteurId;
+ROLLBACK;
+# Réinitialisation de l'auto-incrémentation au plus haut ID + 1
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche les collecteurs selon la date d'installation
-CREATE PROCEDURE PL_CollecteurByDateInstallation(IN dateInstallationCollecteur DATE)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE dateInstallation = dateInstallationCollecteur$$
+-- Test unitaire PSGetCollecteur
 
-# Affiche les collecteurs installés après dateDebut et avant dateFin
-CREATE PROCEDURE PL_CollecteurByDateInstallationInterval(IN dateDebut DATE, IN dateFin DATE)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE dateInstallation BETWEEN dateDebut AND dateFin$$
+# Test lecture classique
+# La différence doit apparaître
+START TRANSACTION;
+	INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiant du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion d'une ligne au cas où la table serait vide
+	INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId);
+    # Récupération de l'identifiant du dernier collecteur inséré
+	SET @dernierCollecteurId = (SELECT max(objectid) from collecteur);
+	# Appel de la procédure
+    CALL PSGetCollecteur(@dernierCollecteurId);
+    # Insertion de la ligne témoin
+	INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(3, "06250", "bjacquemin", NOW(), "bjacquemin", NOW(), "{ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ}", 6.9, 43.5, @dernierTriId);
+	# Récupération de l'identifiant de la dernière catégorie insérée
+	SET @dernierCollecteurId = (SELECT max(objectid) from collecteur);
+    # Appel de la procédure pour vérifier la différence
+	CALL PSGetCollecteur(@dernierCollecteurId);
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche les collecteurs selon l'adresse
--- (qui contiennent adresseCollecteur dans leur adresse) 
-CREATE PROCEDURE PL_CollecteurByAdresse(IN adresseCollecteur VARCHAR(50))
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE adresse LIKE CONCAT('%', adresseCollecteur, '%')$$
+-- Test unitaire PL_Collecteur
 
-# Affiche les collecteurs selon le code INSEE
-CREATE PROCEDURE PL_CollecteurByCodeInsee(IN codeInseeCollecteur CHAR(5))
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE codeInsee = codeInseeCollecteur$$
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	# Affiche la totalité des lignes
+	CALL PL_Collecteur();
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiant du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, "06400", "bjacquemin", NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes (dont les 2 nouvelles)
+    CALL PL_Collecteur();
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche les collecteurs enregistrés par createurCollecteur
-CREATE PROCEDURE PL_CollecteurByCreateur(IN createurCollecteur VARCHAR(20))
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    WHERE createur = createurCollecteur$$
+-- Test unitaire PL_CollecteurByVolume
 
-# Affiche les collecteurs selon la date de création de la ligne
-CREATE PROCEDURE PL_CollecteurByDateCreation(IN dateCreationCollecteur DATE)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur 
-    # où la date de création se situe entre le jour indiqué (dateCreationCollecteur à minuit) et le jour suivant (minuit) pour comprendre la journée entière
-    WHERE dateCreation BETWEEN dateCreationCollecteur AND DATE_ADD(dateCreationCollecteur, INTERVAL 1 DAY)$$
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurVolume = 700;
+	# Affiche la totalité des lignes pour ce volume
+	CALL PL_CollecteurByVolume(@nouveauCollecteurVolume);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE volume = @nouveauCollecteurVolume;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(volume, quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(@nouveauCollecteurVolume, 1, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (@nouveauCollecteurVolume, 2, "06400", "bjacquemin", NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour ce volume (dont les 2 nouvelles)
+	CALL PL_CollecteurByVolume(@nouveauCollecteurVolume);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE volume = @nouveauCollecteurVolume;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche les collecteurs dont les lignes ont été créées entre dateDebut et dateFin (inclus)
-CREATE PROCEDURE PL_CollecteurByDateCreationInterval(IN dateDebut DATE, IN dateFin DATE)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur
-    WHERE dateCreation BETWEEN dateDebut AND DATE_ADD(dateFin, INTERVAL 1 DAY)$$
+-- Test unitaire PL_CollecteurByQuantite
 
-# Affiche les collecteurs modifiés en dernier par modificateurCollecteur
-CREATE PROCEDURE PL_CollecteurByModificateur(IN modificateurCollecteur VARCHAR(20))
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur
-    WHERE modificateur = modificateurCollecteur$$
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurQuantite = 5;
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByQuantite(@nouveauCollecteurQuantite);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE quantite = @nouveauCollecteurQuantite;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(@nouveauCollecteurQuantite, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (@nouveauCollecteurQuantite, "06400", "bjacquemin", NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByQuantite(@nouveauCollecteurQuantite);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE quantite = @nouveauCollecteurQuantite;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche les collecteurs selon la dernière date de modification de la ligne
-CREATE PROCEDURE PL_CollecteurByDateModification(IN dateModificationCollecteur DATE)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur
-    # où la date de création se situe entre le jour indiqué (dateCreationDecheterie à minuit) et le jour suivant (minuit) pour comprendre la journée entière
-    WHERE dateModification BETWEEN dateModificationCollecteur AND DATE_ADD(dateModificationCollecteur, INTERVAL 1 DAY)$$
+-- Test unitaire PL_CollecteurByDateInstallation
 
-# Affiche les collecteurs dont les lignes ont été dernièrement modifiées entre dateDebut et dateFin (inclus)
-CREATE PROCEDURE PL_CollecteurByDateModificationInterval(IN dateDebut DATE, IN dateFin DATE)
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur
-    WHERE dateModification BETWEEN dateDebut AND DATE_ADD(dateFin, INTERVAL 1 DAY)$$    
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurDate = CURDATE();
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByDateInstallation(@nouveauCollecteurDate);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateInstallation = @nouveauCollecteurDate;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, dateInstallation, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, @nouveauCollecteurDate, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, @nouveauCollecteurDate, "06400", "bjacquemin", NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByDateInstallation(@nouveauCollecteurDate);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateInstallation = @nouveauCollecteurDate;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
 
-# Affiche le collecteur d'UUID globalid
-CREATE PROCEDURE PL_CollecteurByGlobalid(IN globalidCollecteur VARCHAR(38))
-	SELECT objectid, id, volume, quantite, dateInstallation, adresse, adresseComplement, codeInsee, observations, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idCategorie, idtri, idMarque FROM collecteur
-    WHERE globalid = globalidCollecteur$$    
+-- Test unitaire PL_CollecteurByDateInstallationInterval
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurDateFin = CURDATE();
+    SET @nouveauCollecteurDateDebut = @nouveauCollecteurDateFin - INTERVAL 1 DAY;
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByDateInstallationInterval(@nouveauCollecteurDateDebut, @nouveauCollecteurDateFin);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateInstallation BETWEEN @nouveauCollecteurDateDebut AND @nouveauCollecteurDateFin;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure considère les 2 extrêmes
+    INSERT INTO collecteur(quantite, dateInstallation, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, @nouveauCollecteurDateDebut, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, @nouveauCollecteurDateFin, "06400", "bjacquemin", NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByDateInstallationInterval(@nouveauCollecteurDateDebut, @nouveauCollecteurDateFin);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateInstallation BETWEEN @nouveauCollecteurDateDebut AND @nouveauCollecteurDateFin;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByAdresse
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurAdresse = "quelque part";
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByAdresse(@nouveauCollecteurAdresse);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE adresse LIKE CONCAT('%', @nouveauCollecteurAdresse, '%');
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 4 lignes pour assurer que la procédure considère les cas avec motif seul, motif à gauche à droite et au centre d'un texte
+    INSERT INTO collecteur(quantite, adresse, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, @nouveauCollecteurAdresse, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, CONCAT("debut", @nouveauCollecteurAdresse), "06400", "bjacquemin", NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId),
+              (1, CONCAT(@nouveauCollecteurAdresse, "fin"), "06138", "cjacquemin", NOW(), "cjacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+              (2, CONCAT("debut", @nouveauCollecteurAdresse, "fin"), "06138", "djacquemin", NOW(), "djacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 4 nouvelles)
+	CALL PL_CollecteurByAdresse(@nouveauCollecteurAdresse);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE adresse LIKE CONCAT('%', @nouveauCollecteurAdresse, '%');
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByCodeInsee
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurCode = "06000";
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByCodeInsee(@nouveauCollecteurCode);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE codeInsee = @nouveauCollecteurCode;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, @nouveauCollecteurCode, "ajacquemin", NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, @nouveauCollecteurCode, "bjacquemin", NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByCodeInsee(@nouveauCollecteurCode);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE codeInsee = @nouveauCollecteurCode;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByCreateur
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurCreateur = "ajacquemin";
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByCreateur(@nouveauCollecteurCreateur);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE createur = @nouveauCollecteurCreateur;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", @nouveauCollecteurCreateur, NOW(), "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, "06138", @nouveauCollecteurCreateur, NOW(), "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByCreateur(@nouveauCollecteurCreateur);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE createur = @nouveauCollecteurCreateur;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByDateCreation
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurDateCreation = NOW();
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByDateCreation(@nouveauCollecteurDateCreation);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateCreation BETWEEN @nouveauCollecteurDateCreation AND DATE_ADD(@nouveauCollecteurDateCreation, INTERVAL 1 DAY);
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", @nouveauCollecteurDateCreation, "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, "06138", "bjacquemin", @nouveauCollecteurDateCreation, "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByDateCreation(@nouveauCollecteurDateCreation);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateCreation BETWEEN @nouveauCollecteurDateCreation AND DATE_ADD(@nouveauCollecteurDateCreation, INTERVAL 1 DAY);
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByDateCreationInterval
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurDateFin = CURDATE();
+    SET @nouveauCollecteurDateDebut = @nouveauCollecteurDateFin - INTERVAL 1 DAY;
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByDateCreationInterval(@nouveauCollecteurDateDebut, @nouveauCollecteurDateFin);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateCreation BETWEEN @nouveauCollecteurDateDebut AND DATE_ADD(@nouveauCollecteurDateFin, INTERVAL 1 DAY);
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure considère les 2 extrêmes
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", @nouveauCollecteurDateDebut, "ajacquemin", NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, "06138", "bjacquemin", @nouveauCollecteurDateFin, "bjacquemin", NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByDateCreationInterval(@nouveauCollecteurDateDebut, @nouveauCollecteurDateFin);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateCreation BETWEEN @nouveauCollecteurDateDebut AND DATE_ADD(@nouveauCollecteurDateFin, INTERVAL 1 DAY);
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByModificateur
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurModificateur = "ajacquemin";
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByModificateur(@nouveauCollecteurModificateur);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE modificateur = @nouveauCollecteurModificateur;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", NOW(), @nouveauCollecteurModificateur, NOW(), "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, "06138", "bjacquemin", NOW(), @nouveauCollecteurModificateur, NOW(), "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByModificateur(@nouveauCollecteurModificateur);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE modificateur = @nouveauCollecteurModificateur;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByDateModification
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurDateModification = NOW();
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByDateModification(@nouveauCollecteurDateModification);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateModification BETWEEN @nouveauCollecteurDateModification AND DATE_ADD(@nouveauCollecteurDateModification, INTERVAL 1 DAY);
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", NOW(), "ajacquemin", @nouveauCollecteurDateModification, "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, "06138", "bjacquemin", NOW(), "bjacquemin", @nouveauCollecteurDateModification, "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByDateModification(@nouveauCollecteurDateModification);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateModification BETWEEN @nouveauCollecteurDateModification AND DATE_ADD(@nouveauCollecteurDateModification, INTERVAL 1 DAY);
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByDateModificationInterval
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurDateFin = CURDATE();
+    SET @nouveauCollecteurDateDebut = @nouveauCollecteurDateFin - INTERVAL 1 DAY;
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByDateModificationInterval(@nouveauCollecteurDateDebut, @nouveauCollecteurDateFin);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateModification BETWEEN @nouveauCollecteurDateDebut AND DATE_ADD(@nouveauCollecteurDateFin, INTERVAL 1 DAY);
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure considère les 2 extrêmes
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", NOW(), "ajacquemin", @nouveauCollecteurDateDebut, "{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}", 6.9, 43.5, @dernierTriId),
+			  (2, "06138", "bjacquemin", NOW(), "bjacquemin", @nouveauCollecteurDateFin, "{ABABABAB-ABAB-ABAB-ABAB-ABABABABABAB}", 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByDateModificationInterval(@nouveauCollecteurDateDebut, @nouveauCollecteurDateFin);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE dateModification BETWEEN @nouveauCollecteurDateDebut AND DATE_ADD(@nouveauCollecteurDateFin, INTERVAL 1 DAY);
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+-- Test unitaire PL_CollecteurByGlobalid
+
+# Test lecture classique
+# Toutes les lignes doivent apparaître (sous réserve des LIMIT)
+START TRANSACTION;
+	SET @nouveauCollecteurGlobalId = "{ABCDEFGH-AAAA-AAAA-AAAA-AAAAAAAAAAAA}";
+	# Affiche la totalité des lignes pour cette quantité
+	CALL PL_CollecteurByGlobalid(@nouveauCollecteurGlobalId);
+    # Décompte du nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE globalid = @nouveauCollecteurGlobalId;
+    INSERT INTO tri(type) VALUES ("Type de tri");
+	# Récupération de l'identifiants du dernier tri inséré	
+	SET @dernierTriId = (SELECT max(id) from tri);    
+    # Insertion de 2 lignes pour assurer que la procédure renvoie plus d'une ligne
+    INSERT INTO collecteur(quantite, codeInsee, createur, dateCreation, modificateur, dateModification, globalid, _x, _y, idTri)
+		VALUES(1, "06138", "ajacquemin", NOW(), "ajacquemin", NOW(), @nouveauCollecteurGlobalId, 6.9, 43.5, @dernierTriId),
+			  (2, "06138", "bjacquemin", NOW(), "bjacquemin", NOW(), @nouveauCollecteurGlobalId, 6.9, 43.5, @dernierTriId);
+	# Affiche la totalité des lignes pour cette quantité (dont les 2 nouvelles)
+	CALL PL_CollecteurByGlobalid(@nouveauCollecteurGlobalId);
+	# Décompte du nouveau nombre de collecteurs
+    SELECT count(*) FROM collecteur WHERE globalid = @nouveauCollecteurGlobalId;
+ROLLBACK;
+ALTER TABLE collecteur AUTO_INCREMENT = 1;  
+ALTER TABLE tri AUTO_INCREMENT = 1;  
+
+
+
+
     
 # Affiche le collecteur selon les coordonnées
 -- La précision de la localisation dépendra de la précision des coordonnées 
@@ -616,14 +818,14 @@ CREATE PROCEDURE PIU_Collecteur(IN objectidCollecteur SMALLINT, IN idCollecteur 
 			SIGNAL SQLSTATE '45000'
 				SET MESSAGE_TEXT = "Un collecteur existe déjà à cette adresse ou pour ces coordonnées";
 		ELSE
-			# On vérifie que l'identifiant de catégorie existe bien s'il est spécifié
-			IF idCategorie IS NULL OR EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
+			# On vérifie que l'identifiant de catégorie existe bien
+			IF EXISTS(SELECT * FROM categorie WHERE id = idCategorie)
 			THEN
 				# On vérifie que l'identifiant de tri existe bien
 				IF EXISTS(SELECT * FROM tri WHERE id = idTri)
 				THEN
-					# On vérifie que l'identifiant de marque existe bien s'il est spécifié
-					IF idMarque IS NULL OR EXISTS(SELECT * FROM marque WHERE id = idMarque)
+					# On vérifie que l'identifiant de marque existe bien
+					IF EXISTS(SELECT * FROM marque WHERE id = idMarque)
 					THEN
 						# Si l'identifiant est déjà attribué
 						IF EXISTS(SELECT * FROM decheterie WHERE objectid = objectidDecheterie)
@@ -1516,4 +1718,4 @@ CREATE PROCEDURE PIU_Tri(IN idTri SMALLINT, IN typeTri VARCHAR(30))
 			# On insère le nouveau tri dans la table
 			INSERT INTO tri VALUES(idTri, typeTri);
 		END IF;
-	END IF$$                                    
+	END IF$$            
