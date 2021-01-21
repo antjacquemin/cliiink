@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v4.1.1">
+  <title>Dashboard Template · Bootstrap</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" />
+  {% include 'includes/externals/headfiles.html' %}
+</head>
+<body>
+  <!-- Header-->
+  {% include 'includes/navbar.html' %}
+  <!-- /#header -->
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Left Panel -->
+      {% include 'includes/left-menu.html' %}
+      <!-- /#left-panel -->
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+        <div class="row mt-5">
+          <div class="chart" id="bargraph">
+            <script>
+                var graph = {{ plot | safe }};
+                Plotly.plot('bargraph',graph,{});
+            </script>
+          </div>
+        </div>
+
+        <div class="row mt-5">
+          <div class="chart" id="bargraph2">
+            <script>
+                var graph2 = {{ plot2 | safe }};
+                Plotly.plot('bargraph2',graph2,{});
+            </script>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  <!-- Footer -->
+  {% include 'includes/footer.html' %}
+  <!-- /Footer -->
+</body>
+<!-- Scripts -->
+{% include 'includes/externals/footerfiles.html' %}
+<script>
+jQuery(document).ready(function() {
+  // Marque le lien dans le menu de la page "Actif"
+  jQuery('#{{ ville }}').addClass('active');
+} );
+</script>
+<!-- Scripts -->
+</html>

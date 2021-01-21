@@ -1,0 +1,57 @@
+{% block left_menu %}
+<nav id="sidebarMenu" class="col-md-2 col-lg-2 d-md-block bg-light sidebar collapse">
+  <div class="sidebar-sticky pt-2">
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Accueil</span>
+      <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
+        <span data-feather="plus-circle"></span>
+      </a>
+    </h6>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a id="home" class="nav-link" href="{{ url_for('home') }}">
+          <span data-feather="home"></span>
+          <i class="menu-icon fas fa-home"></i>&nbsp;Accueil
+        </a>
+      </li>
+      <li class="nav-item">
+        <a  id="map"class="nav-link" href="{{ url_for('map') }}">
+          <span data-feather="file"></span>
+          <i class="menu-icon fas fa-map"></i>&nbsp;Carte
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Statistiques</span>
+      <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
+        <span data-feather="plus-circle"></span>
+      </a>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a id="Cannes" class="nav-link" href="{{ url_for('statistics', ville='Cannes') }}">
+          <span data-feather="file-text"></span>
+          <i class="fas fa-chart-area"></i>&nbsp;Cannes
+        </a>
+        <a id="LeCannet" class="nav-link" href="{{ url_for('statistics', ville='Le Cannet') }}">
+          <span data-feather="file-text"></span>
+          <i class="fas fa-chart-area"></i>&nbsp;Le Cannet
+        </a>
+        <a id="Mandelieu-la-Napoule" class="nav-link" href="{{ url_for('statistics', ville='Mandelieu-la-Napoule') }}">
+          <span data-feather="file-text"></span>
+          <i class="fas fa-chart-area"></i>&nbsp;Mandelieu-la-Napoule
+        </a>
+        <a id="Mougins" class="nav-link" href="{{ url_for('statistics', ville='Mougins') }}">
+          <span data-feather="file-text"></span>
+          <i class="fas fa-chart-area"></i>&nbsp;Mougins
+        </a>
+        <a id="Théoule-sur-Mer" class="nav-link" href="{{ url_for('statistics', ville='Théoule-sur-Mer') }}">
+          <span data-feather="file-text"></span>
+          <i class="fas fa-chart-area"></i>&nbsp;Théoule-sur-Mer
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+{% endblock %}

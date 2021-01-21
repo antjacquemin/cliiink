@@ -1,0 +1,15 @@
+{% block navbar %}
+<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3 text-center" href="{{ url_for('home') }}">
+  <img src="{{ url_for('static', filename='img/cliink.png') }}" width="80" height="30" class="d-inline-block align-top" alt="" loading="lazy">
+</a>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <ul class="navbar-nav px-3">
+    <li class="nav-item text-nowrap">
+      <a class="nav-link" href="{{ url_for('logout') }}"><b class="text-light">Anthony Jacquemin</b><small class=" text-danger">&nbsp;(Déconnexion&nbsp;<i class="fas fa-sign-out-alt"></i>)</small></a>
+    </li>
+  </ul>
+</nav>
+{% endblock %}
