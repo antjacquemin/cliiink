@@ -1,3 +1,6 @@
 bdd/config.json
 bdd/cliiinkNettoyage.sql
-doc/rapport\ Cliiink.docx
+rapport\ Cliiink.docx
+__pycache__/
+config.py
+users.py
